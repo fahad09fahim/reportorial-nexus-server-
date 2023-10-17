@@ -3,11 +3,11 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // middleware
-app.use(express());
 app.use(cors());
+app.use(express.json());
 
 
 
@@ -27,6 +27,35 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+const courseCollection = client.db("reportorial").collection("course");
+const selectedCourseCollection = client.db("reportorial").collection('selectedCourse')
+
+
+ 
+    app.get('/course', async (req,res)=>{
+        const result = await courseCollection.find().toArray()
+        res.send(result)
+    })
+
+    // selected course api
+    app.get('/selected', async (req,res)=>{
+        const selectedCourse = await selectedCourseCollection.find().toArray()
+        res.send(selectedCourse)
+    })
+    app.post('/selected',async (req,res)=>{
+        const selectedCourse = req.body;
+        const result = await selectedCourseCollection.insertOne(selectedCourse)
+        res.send(result)
+    })
+  app.delete('/selected/:id', async (req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await selectedCourseCollection.deleteOne(query);
+    res.send(result)
+  })
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
